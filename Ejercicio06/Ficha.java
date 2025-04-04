@@ -9,13 +9,25 @@ public class Ficha extends Rectangle{
     public static final int TAM = 50;
     public Image imagen;
     public int precio;
+    private int posXInicial; // Posición inicial en X
+    private int posYInicial; // Posición inicial en Y
 
     public Ficha(int posX, int posY, int valor, Image img) {
         super(posX, posY, TAM, TAM);
         imagen = img;
         precio = valor;
-        
+        this.posXInicial = posX; // Guardar la posición inicial
+        this.posYInicial = posY; // Guardar la posición inicial
     }
+    
+    public int getPosXInicial() {
+        return posXInicial;
+    }
+
+    public int getPosYInicial() {
+        return posYInicial;
+    }
+
     public void paint(Graphics g, Applet app){
         
         g.drawImage(imagen, x, y, this.width, this.height, app);

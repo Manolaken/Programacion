@@ -18,13 +18,15 @@ public class Ruleta extends Applet { // Declara la clase pública Tablero que ex
     Casilla casillas[][]; // tablero de 10 x 10 para pintar las casillas
     public int rojos[] = {1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36}; // Números rojos
     ArrayList<Integer> numRojos;
-    Ficha ficha;
-    Ficha fichas[];
+    Ficha activa;
+    ArrayList<Ficha> fichas[];
     Image imagenes[];
+    // Cada elemento del vector es una lista e inicalmente a cada lista le metemos una ficha
+    // pero cuando seleccionamos una ficha, la metemos añadimos en la lista de esa ficha
     
     // Método de inicialización (se ejecuta al iniciar el applet)
     public void init() {
-        imagen = this.createImage(400, 800); // Crear una imagen de 400x500 píxeles para el doble búfer
+        imagen = this.createImage(700, 800); // Crear una imagen de 400x500 píxeles para el doble búfer
         noseve = imagen.getGraphics(); // Obtener el objeto Graphics asociado a la imagen
         // Instancio numRojos y añadado datos de tipo int a la lista numRojos
         numRojos = new ArrayList<Integer>();
@@ -53,13 +55,19 @@ public class Ruleta extends Applet { // Declara la clase pública Tablero que ex
         for(int i = 0; i < NUMJUGADAS; i++)
             imagenes[i] = getImage(getCodeBase(), "Tercera/Ejercicio06/Fichas/ficha" + (i+1) + ".png");
         
-        //Para instanciar una ficha
-        ficha = new Ficha(400, 400, 10, imagenes[2]);
-                
+        int valores[] = {1, 5, 10, 25, 50, 100, 500, 1000, 5000, 10000};
+        // Inicializar el array de listas
+        fichas = new ArrayList[NUMJUGADAS];
+        for (int i = 0; i < NUMJUGADAS; i++) {
+            fichas[i] = new ArrayList<>(); // Inicializar cada lista
+            // Crear la ficha inicial y añadirla a la lista
+            Ficha fichaInicial = new Ficha(400, 50 + (i * Ficha.TAM), valores[i], imagenes[i]); // Crear la ficha inicial
+            fichas[i].add(fichaInicial); // Añadir la ficha inicial a la lista correspondiente
+        }
                 
         //this.setFocusable(true); // Permitir que el applet reciba eventos del teclado
         //this.requestFocus(); // Solicitar el foco del teclado automáticamente
-        this.setSize(400, 800); // Ajustar el tamaño de la ventana al del lienzo
+        this.setSize(700, 800); // Ajustar el tamaño de la ventana al del lienzo
     }
 
     public void update(Graphics g) {
@@ -69,26 +77,54 @@ public class Ruleta extends Applet { // Declara la clase pública Tablero que ex
     // Método para pintar en la pantalla
     public void paint(Graphics g) {
         noseve.setColor(Color.GREEN); // Establecer el color de fondo a negro
-        noseve.fillRect(0, 0, 400, 800); // Llenar el área de dibujo con el color de fondo
+        noseve.fillRect(0, 0, 700, 800); // Llenar el área de dibujo con el color de fondo
         for(int i = 0; i < FILAS; i++)
             for(int j = 0; j < COLUMNAS; j++)
                 casillas[i][j].paint(noseve);
        
-        ficha.paint(noseve, this);
+        for (int i = 0; i < NUMJUGADAS; i++) {
+            for (Ficha ficha : fichas[i]) {
+                ficha.paint(noseve, this); // Dibujar cada ficha en la lista
+            }
+        }
         
         g.drawImage(imagen, 0, 0, this); // Dibujar la imagen completa en el applet para evitar parpadeo
     }
     
     // Método para manejar eventos de clic del ratón
     public boolean mouseDown(Event ev, int x, int y) {
-      
+        for(int i = 0; i < NUMJUGADAS; i++){
+            for (Ficha ficha : fichas[i]) {
+                if(ficha.contains(x, y)){ // Verificar si el clic está dentro de la ficha
+                    activa = ficha; // Asignar la ficha activa al clic del ratón
+                    return true; // Indicar que el evento ha sido manejado
+                }
+            }
+        }
         return true; // Indicar que el evento ha sido manejado
     }
 
-    // Método para manejar eventos de acción
-    public boolean action(Event ev, Object obj) {
-     
+    public boolean mouseDrag(Event ev, int x, int y) {
+        if(activa != null){
+            activa.update(x, y);
+            repaint(); // Llamar al método repaint() para actualizar la pantalla
+        }
         return true; // Indicar que el evento ha sido manejado
     }
-    
+
+    public boolean mouseUp(Event ev, int x, int y) {
+        if (activa != null) {
+        // Crear una nueva ficha en la posición inicial de la ficha activa
+        Ficha nuevaFicha = new Ficha(
+            activa.getPosXInicial(), // Posición inicial en X
+            activa.getPosYInicial(), // Posición inicial en Y
+            activa.precio,
+            activa.imagen
+        );
+        fichas[activa.precio / 10].add(nuevaFicha); // Añadir la nueva ficha a la lista correspondiente
+        activa = null; // Desactivar la ficha activa
+        repaint(); // Actualizar la pantalla
+    }
+    return true; // Indicar que el evento ha sido manejado
+}
 }
