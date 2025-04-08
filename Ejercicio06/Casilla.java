@@ -1,10 +1,9 @@
 package Tercera.Ejercicio06;
 
-import java.applet.Applet;
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Rectangle;
-import java.awt.Font;
 
 public class Casilla extends Rectangle{
     public static final int DIM = 60;

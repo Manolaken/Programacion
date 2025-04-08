@@ -1,10 +1,14 @@
 package Tercera.Ejercicio06; // Define el paquete al que pertenece la clase Tablero
 
 import java.applet.Applet; // Importa la clase Applet del paquete java.applet para crear un applet
+import java.awt.BorderLayout;
+import java.awt.Button;
 import java.awt.Color; // Importa la clase Color para manejar colores
 import java.awt.Event; // Importa la clase Event para manejar eventos
 import java.awt.Graphics; // Importa la clase Graphics para dibujar en el applet
+import java.awt.HeadlessException;
 import java.awt.Image; // Importa la clase Image para manejar imágenes
+import java.awt.Panel;
 import java.util.ArrayList; // También se puede instanciar un objeto sin haber importado su clase.
 
 
@@ -21,6 +25,11 @@ public class Ruleta extends Applet { // Declara la clase pública Tablero que ex
     Ficha activa;
     ArrayList<Ficha> fichas[];
     Image imagenes[];
+    Button boton;
+    int numeroSuerte; // variable para guardar el número que salga en la ruleta.
+    int jugadas[] = new int[NUMJUGADAS];
+    int jugadaMax = 0;
+    
     // Cada elemento del vector es una lista e inicalmente a cada lista le metemos una ficha
     // pero cuando seleccionamos una ficha, la metemos añadimos en la lista de esa ficha
     
@@ -28,6 +37,10 @@ public class Ruleta extends Applet { // Declara la clase pública Tablero que ex
     public void init() {
         imagen = this.createImage(700, 800); // Crear una imagen de 400x500 píxeles para el doble búfer
         noseve = imagen.getGraphics(); // Obtener el objeto Graphics asociado a la imagen
+        setup(); // Llamada al metodo setup para crear el boton
+        
+        
+        
         // Instancio numRojos y añadado datos de tipo int a la lista numRojos
         numRojos = new ArrayList<Integer>();
         for(int i = 0; i < rojos.length; i++)
@@ -60,14 +73,21 @@ public class Ruleta extends Applet { // Declara la clase pública Tablero que ex
         fichas = new ArrayList[NUMJUGADAS];
         for (int i = 0; i < NUMJUGADAS; i++) {
             fichas[i] = new ArrayList<>(); // Inicializar cada lista
-            // Crear la ficha inicial y añadirla a la lista
-            Ficha fichaInicial = new Ficha(400, 50 + (i * Ficha.TAM), valores[i], imagenes[i]); // Crear la ficha inicial
-            fichas[i].add(fichaInicial); // Añadir la ficha inicial a la lista correspondiente
+            // Crear la ficha inicial y añadirla a la lista // Crear la ficha inicial
+            fichas[i].add(new Ficha(300, 50 + (i * Ficha.TAM), valores[i], imagenes[i])); // Añadir la ficha inicial a la lista correspondiente
         }
                 
         //this.setFocusable(true); // Permitir que el applet reciba eventos del teclado
         //this.requestFocus(); // Solicitar el foco del teclado automáticamente
         this.setSize(700, 800); // Ajustar el tamaño de la ventana al del lienzo
+    }
+
+    private void setup() throws HeadlessException {
+        Panel panel = new Panel();
+        boton = new Button("Jugar !");
+        panel.add(boton);
+        this.setLayout(new BorderLayout());
+        this.add("North", panel);
     }
 
     public void update(Graphics g) {
@@ -87,6 +107,19 @@ public class Ruleta extends Applet { // Declara la clase pública Tablero que ex
                 ficha.paint(noseve, this); // Dibujar cada ficha en la lista
             }
         }
+        // Para pintar las jugadas ganadoras
+        noseve.setColor(Color.BLACK);
+        noseve.drawString("Últimas jugadas: ", 400, 75);
+        for(int i = 0; i < jugadas.length; i++)
+            for(int j = 0; j < rojos.length; j++)
+                if(jugadas[i] == rojos[j]){
+                    noseve.setColor(Color.RED);
+                    noseve.drawString("" + jugadas[i], 450, 125 + (i * 50));
+                }
+                else{
+                    noseve.setColor(Color.BLACK);
+                    noseve.drawString("" + jugadas[i], 450, 125 + (i * 50));
+                }
         
         g.drawImage(imagen, 0, 0, this); // Dibujar la imagen completa en el applet para evitar parpadeo
     }
@@ -121,10 +154,30 @@ public class Ruleta extends Applet { // Declara la clase pública Tablero que ex
             activa.precio,
             activa.imagen
         );
-        fichas[activa.precio / 10].add(nuevaFicha); // Añadir la nueva ficha a la lista correspondiente
-        activa = null; // Desactivar la ficha activa
-        repaint(); // Actualizar la pantalla
+        for(int i = 0; i < fichas.length; i++)
+            for(Ficha ficha : fichas[i]){
+                fichas[i].add(nuevaFicha);
+                activa = null;
+                repaint();
+                activa.cargarApuesta(casillas);
+            }
     }
     return true; // Indicar que el evento ha sido manejado
-}
+    }
+    
+    public boolean action(Event ev, Object obj){
+        if(ev.target instanceof Button){
+            this.numeroSuerte = (int)(Math.random() * 37); // para que nos devuelva un numero aleatorio entre 0 y 36
+            //for(int i = 0; i < jugadas.length; i++)
+            if(jugadaMax < NUMJUGADAS){
+                jugadas[jugadaMax] = numeroSuerte;
+                jugadaMax++;
+            }
+            else
+                jugadaMax = 0;
+            repaint();
+        }
+        
+        return false;
+    }
 }
